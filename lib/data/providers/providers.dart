@@ -2,19 +2,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../local/hive_drafts.dart';
 import '../repositories/demo_repository.dart';
 import '../repositories/emr_repository.dart';
+import '../repositories/supabase_repository.dart';
 import '../models/models.dart';
 
 final hiveStoreProvider = Provider<HiveDraftStore>((ref) => HiveDraftStore());
 
-/// Swap to SupabaseRepository when a live project is configured.
+/// Hybrid Supabase + DemoRepository (falls back to local if offline / probe fails).
 final repositoryProvider = Provider<EmrRepository>((ref) {
-  return DemoRepository(ref.watch(hiveStoreProvider));
+  return SupabaseRepository(hive: ref.watch(hiveStoreProvider));
 });
 
 final repoInitProvider = FutureProvider<EmrRepository>((ref) async {
   final repo = ref.watch(repositoryProvider);
   await repo.initialize();
   return repo;
+});
+
+/// Backend connectivity label for splash / settings.
+final connectionStatusProvider = Provider<String>((ref) {
+  final repo = ref.watch(repositoryProvider);
+  if (repo is SupabaseRepository) return repo.connectionLabel;
+  if (repo is DemoRepository) return 'Demo local';
+  return 'Unknown';
+});
+
+final connectionConnectedProvider = Provider<bool>((ref) {
+  final repo = ref.watch(repositoryProvider);
+  if (repo is SupabaseRepository) return repo.isConnected;
+  return false;
 });
 
 /// Tick when demo repo notifies (login, submit, approve…).

@@ -1,19 +1,30 @@
 import '../models/models.dart';
 import '../../core/constants/app_constants.dart';
+import '../../core/supabase_config.dart';
 
 ElectionInfo get kDemoElection => ElectionInfo(
-      id: 'elec-nw-2026-demo',
-      name: 'NW Demo Gubernatorial 2026',
-      electionDate: DateTime(2026, 11, 15),
+      id: SupabaseConfig.demoElectionId,
+      name: '2027 General Election (Demo)',
+      electionDate: DateTime(2027, 2, 25),
       status: 'active',
     );
 
 const kParties = <Party>[
   Party(id: 'apc', name: 'All Progressives Congress', acronym: 'APC', colorHex: '#39a453'),
-  Party(id: 'pdp', name: 'Peoples Democratic Party', acronym: 'PDP', colorHex: '#e52b32'),
-  Party(id: 'nnpp', name: 'New Nigeria Peoples Party', acronym: 'NNPP', colorHex: '#5cc3e7'),
+  Party(id: 'pdp', name: 'Peoples Democratic Party', acronym: 'PDP', colorHex: '#5cc3e7'),
+  Party(id: 'nnpp', name: 'New Nigeria Peoples Party', acronym: 'NNPP', colorHex: '#e52b32'),
   Party(id: 'lp', name: 'Labour Party', acronym: 'LP', colorHex: '#976532'),
 ];
+
+/// Stable UUIDs — match seeded `profiles` rows in Supabase.
+class DemoProfileIds {
+  static const agent = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0001';
+  static const ward = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0002';
+  static const lga = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0003';
+  static const state = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0004';
+  static const sitroom = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0005';
+  static const admin = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa0006';
+}
 
 /// Demo users — passwordless picker. Geography ids match trimmed NW asset.
 List<DemoUser> buildDemoUsers({
@@ -24,7 +35,7 @@ List<DemoUser> buildDemoUsers({
 }) {
   return [
     DemoUser(
-      id: 'usr-agent-1',
+      id: DemoProfileIds.agent,
       email: 'agent.amina@cb-emr.demo',
       fullName: 'Amina Mohammed',
       role: AppRoles.fieldAgent,
@@ -34,7 +45,7 @@ List<DemoUser> buildDemoUsers({
       assignedPuIds: agentPuIds,
     ),
     DemoUser(
-      id: 'usr-ward-1',
+      id: DemoProfileIds.ward,
       email: 'ward.ibrahim@cb-emr.demo',
       fullName: 'Ibrahim Garba',
       role: AppRoles.wardSupervisor,
@@ -43,7 +54,7 @@ List<DemoUser> buildDemoUsers({
       wardId: demoWardId,
     ),
     DemoUser(
-      id: 'usr-lga-1',
+      id: DemoProfileIds.lga,
       email: 'lga.aisha@cb-emr.demo',
       fullName: 'Aisha Suleiman',
       role: AppRoles.lgaSupervisor,
@@ -51,20 +62,20 @@ List<DemoUser> buildDemoUsers({
       lgaId: kadunaNorthLgaId,
     ),
     DemoUser(
-      id: 'usr-state-1',
+      id: DemoProfileIds.state,
       email: 'state.sani@cb-emr.demo',
       fullName: 'Sani Bello',
       role: AppRoles.stateSupervisor,
       stateId: kadunaStateId,
     ),
     DemoUser(
-      id: 'usr-sitroom-1',
+      id: DemoProfileIds.sitroom,
       email: 'sitroom.hauwa@cb-emr.demo',
       fullName: 'Hauwa Ibrahim',
       role: AppRoles.situationRoom,
     ),
     DemoUser(
-      id: 'usr-admin-1',
+      id: DemoProfileIds.admin,
       email: 'admin.amina@cb-emr.demo',
       fullName: 'Amina Yusuf',
       role: AppRoles.superAdmin,

@@ -11,6 +11,8 @@ class LoginScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final init = ref.watch(repoInitProvider);
+    final connected = ref.watch(connectionConnectedProvider);
+    final connLabel = ref.watch(connectionStatusProvider);
     return Scaffold(
       body: SafeArea(
         child: init.when(
@@ -35,6 +37,19 @@ class LoginScreen extends ConsumerWidget {
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold)),
                 Text(AppConstants.appSubtitle, textAlign: TextAlign.center, style: const TextStyle(color: ApcColors.blue)),
+                const SizedBox(height: 8),
+                Center(
+                  child: Chip(
+                    avatar: Icon(
+                      connected ? Icons.cloud_done : Icons.cloud_off,
+                      size: 16,
+                      color: connected ? ApcColors.green : ApcColors.brown,
+                    ),
+                    label: Text(connLabel, style: const TextStyle(fontSize: 12)),
+                    backgroundColor: (connected ? ApcColors.green : ApcColors.brown).withValues(alpha: 0.15),
+                    side: BorderSide(color: connected ? ApcColors.green : ApcColors.brown),
+                  ),
+                ),
                 const SizedBox(height: 8),
                 const Text('Demo login — pick a role (passwordless)',
                     textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)),

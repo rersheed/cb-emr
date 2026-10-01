@@ -24,6 +24,8 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     final init = ref.watch(repoInitProvider);
+    final connected = ref.watch(connectionConnectedProvider);
+    final label = ref.watch(connectionStatusProvider);
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -54,6 +56,36 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
             const SizedBox(height: 8),
             Text(AppConstants.appSubtitle,
                 style: TextStyle(color: ApcColors.blue.withValues(alpha: 0.95))),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.35),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: connected ? ApcColors.green : ApcColors.brown,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    connected ? Icons.cloud_done : Icons.cloud_off,
+                    size: 16,
+                    color: connected ? ApcColors.green : ApcColors.brown,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: connected ? ApcColors.green : ApcColors.brown,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
             const SizedBox(height: 32),
             init.when(
               data: (_) => const SizedBox.shrink(),
