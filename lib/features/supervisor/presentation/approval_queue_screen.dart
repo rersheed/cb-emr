@@ -3,8 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../../data/providers/providers.dart';
+import '../../../core/widgets/ui_kit.dart';
 import '../../../data/models/models.dart';
+import '../../../data/providers/providers.dart';
 
 class ApprovalQueueScreen extends ConsumerStatefulWidget {
   const ApprovalQueueScreen({super.key});
@@ -14,6 +15,7 @@ class ApprovalQueueScreen extends ConsumerStatefulWidget {
 
 class _ApprovalQueueScreenState extends ConsumerState<ApprovalQueueScreen> {
   final reasonCtrl = TextEditingController();
+  int navIndex = 0;
 
   @override
   void dispose() {
@@ -49,108 +51,191 @@ class _ApprovalQueueScreenState extends ConsumerState<ApprovalQueueScreen> {
       AppRoles.wardSupervisor => 'Ward approval queue',
       AppRoles.lgaSupervisor => 'LGA approval queue',
       AppRoles.stateSupervisor => 'State approval queue',
-      AppRoles.superAdmin => 'Supervisor queue (all pending)',
+      AppRoles.superAdmin => 'Supervisor queue',
       _ => 'Approval queue',
     };
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        actions: [
-          if (user.role == AppRoles.superAdmin || user.role == AppRoles.stateSupervisor)
-            IconButton(
-              tooltip: 'Situation Room',
-              onPressed: () => context.push('/situation-room'),
-              icon: const Icon(Icons.monitor_heart_outlined),
-            ),
-          IconButton(
-            onPressed: () => context.push('/offline'),
-            icon: const Icon(Icons.cloud_upload_outlined),
-          ),
-          IconButton(
-            onPressed: () => ref.read(sessionProvider.notifier).logout(),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      body: queue.isEmpty
-          ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+      backgroundColor: ApcColors.surface,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 8, 0),
+              child: Row(
                 children: [
-                  const Icon(Icons.inbox, size: 48, color: Colors.white38),
-                  const SizedBox(height: 8),
-                  Text('No items in ${ResultStatus.label(queueStatus)}'),
-                  const SizedBox(height: 8),
-                  Text(user.fullName, style: const TextStyle(color: ApcColors.blue)),
-                ],
-              ),
-            )
-          : ListView.builder(
-              padding: const EdgeInsets.all(12),
-              itemCount: queue.length,
-              itemBuilder: (_, i) {
-                final r = queue[i];
-                final total = r.totalPartyVotes;
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 10),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(r.puName ?? r.pollingUnitId,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        Text('${ResultStatus.label(r.status)} · Total votes: $total · Accredited: ${r.accreditedVoters}',
-                            style: const TextStyle(color: Colors.white70, fontSize: 12)),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          children: r.partyVotes.entries
-                              .map((e) => Chip(label: Text('${e.key.toUpperCase()}: ${e.value}')))
-                              .toList(),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: FilledButton.icon(
-                                onPressed: () async {
-                                  try {
-                                    await repo.approveResult(r.id);
-                                    // ignore: use_build_context_synchronously
-    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Approved → ${ResultStatus.label(ResultStatus.nextOnApprove(r.status) ?? '')}')),
-                                      );
-                                    }
-                                  } catch (e) {
-                                    // ignore: use_build_context_synchronously
-    if (context.mounted) {
-                                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-                                    }
-                                  }
-                                },
-                                icon: const Icon(Icons.check),
-                                label: const Text('Approve'),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: OutlinedButton.icon(
-                                onPressed: () => _rejectDialog(repo, r),
-                                icon: const Icon(Icons.close, color: ApcColors.red),
-                                label: const Text('Reject', style: TextStyle(color: ApcColors.red)),
-                              ),
-                            ),
-                          ],
-                        ),
+                        Text(title, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900)),
+                        Text('${user.fullName} · ${AppRoles.label(user.role)}',
+                            style: const TextStyle(color: ApcColors.muted, fontSize: 12)),
                       ],
                     ),
                   ),
-                );
-              },
+                  if (user.role == AppRoles.superAdmin || user.role == AppRoles.stateSupervisor)
+                    IconButton(
+                      tooltip: 'Situation Room',
+                      onPressed: () => context.push('/situation-room'),
+                      icon: const Icon(Icons.monitor_heart_outlined, color: ApcColors.green),
+                    ),
+                  IconButton(
+                    onPressed: () => context.push('/offline'),
+                    icon: const Icon(Icons.cloud_upload_outlined),
+                  ),
+                  IconButton(
+                    onPressed: () => ref.read(sessionProvider.notifier).logout(),
+                    icon: const Icon(Icons.logout_rounded, color: ApcColors.muted),
+                  ),
+                ],
+              ),
             ),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+                children: [
+                  SoftCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Approval chain',
+                            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+                        const SizedBox(height: 12),
+                        ApprovalTimeline(currentStatus: queueStatus),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    queue.isEmpty ? 'Queue empty' : '${queue.length} pending item(s)',
+                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+                  ),
+                  const SizedBox(height: 10),
+                  if (queue.isEmpty)
+                    SoftCard(
+                      child: Column(
+                        children: [
+                          Icon(Icons.inbox_rounded, size: 48, color: ApcColors.muted.withValues(alpha: 0.5)),
+                          const SizedBox(height: 8),
+                          Text('No items in ${ResultStatus.label(queueStatus)}',
+                              style: const TextStyle(color: ApcColors.muted)),
+                        ],
+                      ),
+                    ),
+                  for (final r in queue)
+                    SoftCard(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(r.puName ?? r.pollingUnitId,
+                                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: ApcColors.blueSoft,
+                                  borderRadius: BorderRadius.circular(AppRadii.pill),
+                                ),
+                                child: Text(ResultStatus.label(r.status),
+                                    style: const TextStyle(
+                                        fontSize: 11, fontWeight: FontWeight.w700, color: ApcColors.blue)),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Total votes: ${r.totalPartyVotes} · Accredited: ${r.accreditedVoters}',
+                            style: const TextStyle(color: ApcColors.muted, fontSize: 12),
+                          ),
+                          const SizedBox(height: 10),
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: r.partyVotes.entries
+                                .map((e) => Chip(
+                                      label: Text('${e.key.toUpperCase()}: ${e.value}',
+                                          style: const TextStyle(fontSize: 11)),
+                                      visualDensity: VisualDensity.compact,
+                                    ))
+                                .toList(),
+                          ),
+                          const SizedBox(height: 12),
+                          ApprovalTimeline(currentStatus: r.status, compact: true),
+                          const SizedBox(height: 14),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: FilledButton.icon(
+                                  onPressed: () async {
+                                    try {
+                                      await repo.approveResult(r.id);
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                              'Approved → ${ResultStatus.label(ResultStatus.nextOnApprove(r.status) ?? '')}',
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(SnackBar(content: Text('$e')));
+                                      }
+                                    }
+                                  },
+                                  icon: const Icon(Icons.check_rounded),
+                                  label: const Text('Approve'),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _rejectDialog(repo, r),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: ApcColors.red,
+                                    side: const BorderSide(color: ApcColors.red),
+                                  ),
+                                  icon: const Icon(Icons.close_rounded, color: ApcColors.red),
+                                  label: const Text('Reject'),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: FloatingPillNav(
+        index: navIndex,
+        onChanged: (i) {
+          setState(() => navIndex = i);
+          if (i == 1 && (user.role == AppRoles.superAdmin || user.role == AppRoles.stateSupervisor)) {
+            context.push('/situation-room');
+          } else if (i == 2) {
+            context.push('/offline');
+          } else if (i == 3) {
+            ref.read(sessionProvider.notifier).logout();
+          }
+        },
+        items: const [
+          (icon: Icons.fact_check_rounded, label: 'Queue'),
+          (icon: Icons.monitor_heart_outlined, label: 'Room'),
+          (icon: Icons.cloud_upload_outlined, label: 'Sync'),
+          (icon: Icons.logout_rounded, label: 'Logout'),
+        ],
+      ),
     );
   }
 
@@ -159,6 +244,7 @@ class _ApprovalQueueScreenState extends ConsumerState<ApprovalQueueScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadii.lg)),
         title: const Text('Reject result'),
         content: TextField(
           controller: reasonCtrl,
@@ -177,8 +263,7 @@ class _ApprovalQueueScreenState extends ConsumerState<ApprovalQueueScreen> {
     );
     if (ok == true && reasonCtrl.text.trim().isNotEmpty) {
       await repo.rejectResult(r.id, reason: reasonCtrl.text.trim());
-      // ignore: use_build_context_synchronously
-    if (context.mounted) {
+      if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Rejected')));
       }
     }

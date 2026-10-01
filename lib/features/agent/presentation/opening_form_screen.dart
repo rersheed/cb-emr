@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/ui_kit.dart';
 import '../../../data/models/models.dart';
 import '../../../data/providers/providers.dart';
 
@@ -37,29 +38,72 @@ class _OpeningFormScreenState extends ConsumerState<OpeningFormScreen> {
       lon = resolved.ward.lon ?? lon;
     }
     return Scaffold(
+      backgroundColor: ApcColors.surface,
       appBar: AppBar(title: const Text('Opening report')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
-          Text(pu?.name ?? widget.puId, style: Theme.of(context).textTheme.titleMedium),
-          SwitchListTile(
-            title: const Text('Materials complete'),
-            value: materials,
-            activeThumbColor: ApcColors.green,
-            onChanged: (v) => setState(() => materials = v),
+          SoftCard(
+            child: Text(pu?.name ?? widget.puId,
+                style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
           ),
-          SwitchListTile(
-            title: const Text('Officials present'),
-            value: officials,
-            activeThumbColor: ApcColors.green,
-            onChanged: (v) => setState(() => officials = v),
-          ),
-          TextField(controller: notes, decoration: const InputDecoration(labelText: 'Notes'), maxLines: 3),
           const SizedBox(height: 12),
-          Text('GPS (stub): ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}',
-              style: const TextStyle(color: ApcColors.blue)),
-          const SizedBox(height: 20),
-          FilledButton(
+          FormSectionCard(
+            title: 'Checklist',
+            icon: Icons.checklist_rounded,
+            child: Column(
+              children: [
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Materials complete', style: TextStyle(fontWeight: FontWeight.w600)),
+                  value: materials,
+                  activeThumbColor: ApcColors.green,
+                  onChanged: (v) => setState(() => materials = v),
+                ),
+                SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Officials present', style: TextStyle(fontWeight: FontWeight.w600)),
+                  value: officials,
+                  activeThumbColor: ApcColors.green,
+                  onChanged: (v) => setState(() => officials = v),
+                ),
+              ],
+            ),
+          ),
+          FormSectionCard(
+            title: 'Notes & GPS',
+            icon: Icons.notes_rounded,
+            accent: ApcColors.blue,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextField(
+                  controller: notes,
+                  decoration: const InputDecoration(labelText: 'Notes', alignLabelWithHint: true),
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: ApcColors.blueSoft,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.gps_fixed_rounded, color: ApcColors.blue, size: 18),
+                      const SizedBox(width: 8),
+                      Text('GPS: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}',
+                          style: const TextStyle(color: ApcColors.blue, fontWeight: FontWeight.w600, fontSize: 13)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          GradientCtaButton(
+            label: 'Submit opening report',
+            busy: busy,
             onPressed: busy
                 ? null
                 : () async {
@@ -80,12 +124,13 @@ class _OpeningFormScreenState extends ConsumerState<OpeningFormScreen> {
                       puName: pu?.name,
                     ));
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Opening report submitted')));
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(const SnackBar(content: Text('Opening report submitted')));
                       context.pop();
                     }
                   },
-            child: const Text('Submit opening report'),
           ),
+          const SizedBox(height: 10),
           OutlinedButton(
             onPressed: busy
                 ? null
@@ -110,7 +155,8 @@ class _OpeningFormScreenState extends ConsumerState<OpeningFormScreen> {
                       offline: true,
                     );
                     if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Saved to offline queue')));
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(const SnackBar(content: Text('Saved to offline queue')));
                       context.pop();
                     }
                   },

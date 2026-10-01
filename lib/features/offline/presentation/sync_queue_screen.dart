@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/ui_kit.dart';
 import '../../../data/providers/providers.dart';
 
 class SyncQueueScreen extends ConsumerWidget {
@@ -12,43 +13,50 @@ class SyncQueueScreen extends ConsumerWidget {
     final repo = ref.watch(repositoryProvider);
     final queue = repo.syncQueue();
     return Scaffold(
+      backgroundColor: ApcColors.surface,
       appBar: AppBar(title: const Text('Offline sync queue')),
       body: Column(
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text('${queue.length} pending upload(s)',
-                      style: Theme.of(context).textTheme.titleMedium),
-                ),
-                FilledButton.icon(
-                  onPressed: queue.isEmpty
-                      ? null
-                      : () async {
-                          final n = await repo.syncPending();
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Synced $n item(s) into demo store')),
-                            );
-                          }
-                        },
-                  icon: const Icon(Icons.cloud_done),
-                  label: const Text('Sync now'),
-                ),
-              ],
+            child: SoftCard(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text('${queue.length} pending upload(s)',
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  ),
+                  FilledButton.icon(
+                    onPressed: queue.isEmpty
+                        ? null
+                        : () async {
+                            final n = await repo.syncPending();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(content: Text('Synced $n item(s) into demo store')),
+                              );
+                            }
+                          },
+                    icon: const Icon(Icons.cloud_done_rounded),
+                    label: const Text('Sync now'),
+                  ),
+                ],
+              ),
             ),
           ),
           Expanded(
             child: queue.isEmpty
-                ? const Center(child: Text('Queue empty — drafts sync here when offline.'))
+                ? const Center(
+                    child: Text('Queue empty — drafts sync here when offline.',
+                        style: TextStyle(color: ApcColors.muted)))
                 : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     itemCount: queue.length,
                     itemBuilder: (_, i) {
                       final item = queue[i];
-                      return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      return SoftCard(
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: EdgeInsets.zero,
                         child: ListTile(
                           leading: Icon(
                             item.type == 'result'
@@ -58,10 +66,8 @@ class SyncQueueScreen extends ConsumerWidget {
                                     : Icons.door_front_door,
                             color: ApcColors.blue,
                           ),
-                          title: Text(item.type.toUpperCase()),
-                          subtitle: Text('Queued ${item.enqueuedAt.toLocal()}\n${item.id}',
-                              style: const TextStyle(fontSize: 11)),
-                          isThreeLine: true,
+                          title: Text(item.type, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          subtitle: Text(item.id),
                         ),
                       );
                     },

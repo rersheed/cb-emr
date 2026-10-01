@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/widgets/ui_kit.dart';
 import '../../../data/models/models.dart';
 import '../../../data/providers/providers.dart';
 
@@ -46,61 +47,97 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
     final total = parties.fold<int>(0, (a, p) => a + _parse(voteCtrls[p.id]!));
 
     return Scaffold(
+      backgroundColor: ApcColors.surface,
       appBar: AppBar(title: const Text('Result entry')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
-          Text(pu?.name ?? '', style: Theme.of(context).textTheme.titleMedium),
+          SoftCard(
+            child: Text(pu?.name ?? '', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+          ),
           const SizedBox(height: 12),
-          TextField(
-            controller: accredited,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Accredited voters'),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: invalid,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(labelText: 'Invalid ballots'),
-            onChanged: (_) => setState(() {}),
-          ),
-          const SizedBox(height: 16),
-          Text('Party votes', style: Theme.of(context).textTheme.titleSmall),
-          ...parties.map((p) {
-            return Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: TextField(
-                controller: voteCtrls[p.id],
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  labelText: '${p.acronym} — ${p.name}',
-                  prefixIcon: Icon(Icons.circle, size: 12, color: _color(p.colorHex)),
+          FormSectionCard(
+            title: 'Turnout',
+            icon: Icons.groups_rounded,
+            child: Column(
+              children: [
+                TextField(
+                  controller: accredited,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Accredited voters'),
+                  onChanged: (_) => setState(() {}),
                 ),
-                onChanged: (_) => setState(() {}),
-              ),
-            );
-          }),
-          const SizedBox(height: 12),
-          Card(
-            color: ApcColors.green.withValues(alpha: 0.15),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Text('Auto total (party votes): $total',
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: invalid,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(labelText: 'Invalid ballots'),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ],
+            ),
+          ),
+          FormSectionCard(
+            title: 'Party votes',
+            icon: Icons.how_to_vote_rounded,
+            child: Column(
+              children: [
+                for (final p in parties)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: TextField(
+                      controller: voteCtrls[p.id],
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: '${p.acronym} — ${p.name}',
+                        prefixIcon: Icon(Icons.circle, size: 12, color: _color(p.colorHex)),
+                      ),
+                      onChanged: (_) => setState(() {}),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          SoftCard(
+            color: ApcColors.greenSoft,
+            child: Row(
+              children: [
+                const Icon(Icons.calculate_rounded, color: ApcColors.green),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text('Auto total (party votes): $total',
+                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: ApcColors.greenDark)),
+                ),
+              ],
             ),
           ),
           if (errorText != null)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(errorText!, style: const TextStyle(color: ApcColors.red)),
+              padding: const EdgeInsets.only(top: 10),
+              child: Text(errorText!, style: const TextStyle(color: ApcColors.red, fontWeight: FontWeight.w600)),
             ),
-          ...warnings.map((w) => Text(w, style: const TextStyle(color: Colors.orangeAccent, fontSize: 12))),
+          ...warnings.map((w) => Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(w, style: const TextStyle(color: ApcColors.gold, fontSize: 12)),
+              )),
           const SizedBox(height: 16),
-          FilledButton(
-            onPressed: busy ? null : () => _submit(repo, offline: false),
-            child: const Text('Submit for ward approval'),
+          SoftCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Goes to approval chain', style: TextStyle(fontWeight: FontWeight.w800)),
+                const SizedBox(height: 10),
+                const ApprovalTimeline(currentStatus: ResultStatus.pendingWard, compact: true),
+              ],
+            ),
           ),
+          const SizedBox(height: 16),
+          GradientCtaButton(
+            label: 'Submit for ward approval',
+            busy: busy,
+            onPressed: busy ? null : () => _submit(repo, offline: false),
+          ),
+          const SizedBox(height: 10),
           OutlinedButton(
             onPressed: busy ? null : () => _submit(repo, offline: true),
             child: const Text('Save draft offline'),

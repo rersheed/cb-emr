@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/ui_kit.dart';
 import '../../../data/providers/providers.dart';
 
 class PuScreen extends ConsumerWidget {
@@ -18,56 +19,82 @@ class PuScreen extends ConsumerWidget {
     }
     final pu = resolved.pu;
     return Scaffold(
+      backgroundColor: ApcColors.surface,
       appBar: AppBar(title: Text(pu.name)),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          Card(
-            child: ListTile(
-              title: Text('${resolved.state.name} › ${resolved.lga.name}'),
-              subtitle: Text('Ward: ${resolved.ward.name}\nPU code: ${pu.code}'),
-              isThreeLine: true,
+          SoftCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: ApcColors.greenSoft,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Icon(Icons.location_on_rounded, color: ApcColors.green),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('${resolved.state.name} › ${resolved.lga.name}',
+                              style: const TextStyle(fontWeight: FontWeight.w800)),
+                          Text('Ward: ${resolved.ward.name}',
+                              style: const TextStyle(color: ApcColors.muted, fontSize: 13)),
+                          Text('PU code: ${pu.code}',
+                              style: const TextStyle(color: ApcColors.blue, fontSize: 12, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 12),
-          _ActionTile(
-            icon: Icons.door_front_door,
-            title: 'Opening report',
-            color: ApcColors.blue,
-            onTap: () => context.push('/agent/opening/$puId'),
-          ),
-          _ActionTile(
-            icon: Icons.warning_amber,
-            title: 'Report incident',
-            color: ApcColors.red,
-            onTap: () => context.push('/agent/incident/$puId'),
-          ),
-          _ActionTile(
-            icon: Icons.how_to_vote,
-            title: 'Enter results',
-            color: ApcColors.green,
-            onTap: () => context.push('/agent/result/$puId'),
+          const SizedBox(height: 16),
+          const Text('Actions', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+          const SizedBox(height: 10),
+          GridView.count(
+            crossAxisCount: 2,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: 1.15,
+            children: [
+              ActionGridTile(
+                icon: Icons.door_front_door_rounded,
+                label: 'Opening report',
+                color: ApcColors.blue,
+                onTap: () => context.push('/agent/opening/$puId'),
+              ),
+              ActionGridTile(
+                icon: Icons.warning_amber_rounded,
+                label: 'Report incident',
+                color: ApcColors.red,
+                onTap: () => context.push('/agent/incident/$puId'),
+              ),
+              ActionGridTile(
+                icon: Icons.how_to_vote_rounded,
+                label: 'Enter results',
+                color: ApcColors.green,
+                onTap: () => context.push('/agent/result/$puId'),
+              ),
+              ActionGridTile(
+                icon: Icons.inventory_2_outlined,
+                label: 'Materials check',
+                color: ApcColors.brown,
+                onTap: () => context.push('/agent/opening/$puId'),
+              ),
+            ],
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _ActionTile extends StatelessWidget {
-  const _ActionTile({required this.icon, required this.title, required this.color, required this.onTap});
-  final IconData icon;
-  final String title;
-  final Color color;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      child: ListTile(
-        leading: CircleAvatar(backgroundColor: color.withValues(alpha: 0.2), child: Icon(icon, color: color)),
-        title: Text(title),
-        trailing: const Icon(Icons.chevron_right),
-        onTap: onTap,
       ),
     );
   }

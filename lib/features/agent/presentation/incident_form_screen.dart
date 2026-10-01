@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:uuid/uuid.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/widgets/ui_kit.dart';
 import '../../../data/models/models.dart';
 import '../../../data/providers/providers.dart';
 
@@ -38,13 +39,10 @@ class _IncidentFormScreenState extends ConsumerState<IncidentFormScreen> {
       if (file != null) setState(() => photoPath = file.path);
     } catch (_) {
       if (!mounted) return;
-                    // ignore: use_build_context_synchronously
-                    if (true) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Gallery pick unavailable — photo path stubbed.')),
-        );
-        setState(() => photoPath = 'stub://demo-photo.jpg');
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Gallery pick unavailable — photo path stubbed.')),
+      );
+      setState(() => photoPath = 'stub://demo-photo.jpg');
     }
   }
 
@@ -58,49 +56,83 @@ class _IncidentFormScreenState extends ConsumerState<IncidentFormScreen> {
       lon = resolved.ward.lon ?? lon;
     }
     return Scaffold(
+      backgroundColor: ApcColors.surface,
       appBar: AppBar(title: const Text('Incident report')),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
-          Text(pu?.name ?? '', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          DropdownButtonFormField<String>(
-            // ignore: deprecated_member_use
-            value: category,
-            decoration: const InputDecoration(labelText: 'Category'),
-            items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
-            onChanged: (v) => setState(() => category = v ?? category),
+          SoftCard(
+            color: ApcColors.redSoft,
+            child: Row(
+              children: [
+                const Icon(Icons.warning_amber_rounded, color: ApcColors.red),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(pu?.name ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.w800, color: ApcColors.red)),
+                ),
+              ],
+            ),
           ),
           const SizedBox(height: 12),
-          DropdownButtonFormField<String>(
-            // ignore: deprecated_member_use
-            value: severity,
-            decoration: const InputDecoration(labelText: 'Severity'),
-            items: const [
-              DropdownMenuItem(value: 'low', child: Text('Low')),
-              DropdownMenuItem(value: 'medium', child: Text('Medium')),
-              DropdownMenuItem(value: 'high', child: Text('High')),
-              DropdownMenuItem(value: 'critical', child: Text('Critical')),
-            ],
-            onChanged: (v) => setState(() => severity = v ?? severity),
+          FormSectionCard(
+            title: 'Incident details',
+            icon: Icons.report_gmailerrorred_rounded,
+            accent: ApcColors.red,
+            child: Column(
+              children: [
+                DropdownButtonFormField<String>(
+                  // ignore: deprecated_member_use
+                  value: category,
+                  decoration: const InputDecoration(labelText: 'Category'),
+                  items: categories.map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
+                  onChanged: (v) => setState(() => category = v ?? category),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  // ignore: deprecated_member_use
+                  value: severity,
+                  decoration: const InputDecoration(labelText: 'Severity'),
+                  items: const [
+                    DropdownMenuItem(value: 'low', child: Text('Low')),
+                    DropdownMenuItem(value: 'medium', child: Text('Medium')),
+                    DropdownMenuItem(value: 'high', child: Text('High')),
+                    DropdownMenuItem(value: 'critical', child: Text('Critical')),
+                  ],
+                  onChanged: (v) => setState(() => severity = v ?? severity),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: description,
+                  decoration: const InputDecoration(labelText: 'Description', alignLabelWithHint: true),
+                  maxLines: 4,
+                  onChanged: (_) => setState(() {}),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: description,
-            decoration: const InputDecoration(labelText: 'Description'),
-            maxLines: 4,
+          FormSectionCard(
+            title: 'Evidence',
+            icon: Icons.photo_camera_outlined,
+            accent: ApcColors.blue,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _pickPhoto,
+                  icon: const Icon(Icons.photo_camera, color: ApcColors.blue),
+                  label: Text(photoPath == null ? 'Add photo (gallery / stub)' : 'Photo attached'),
+                ),
+                const SizedBox(height: 10),
+                Text('GPS stub: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}',
+                    style: const TextStyle(color: ApcColors.blue, fontSize: 12)),
+              ],
+            ),
           ),
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            onPressed: _pickPhoto,
-            icon: const Icon(Icons.photo_camera, color: ApcColors.blue),
-            label: Text(photoPath == null ? 'Add photo (gallery / stub)' : 'Photo: $photoPath'),
-          ),
-          const SizedBox(height: 8),
-          Text('GPS stub: ${lat.toStringAsFixed(4)}, ${lon.toStringAsFixed(4)}',
-              style: const TextStyle(color: ApcColors.blue)),
-          const SizedBox(height: 20),
-          FilledButton(
+          GradientCtaButton(
+            label: 'Submit incident',
+            colors: const [ApcColors.red, Color(0xFFB71C1C)],
+            busy: busy,
             onPressed: busy || description.text.trim().isEmpty
                 ? null
                 : () async {
@@ -121,14 +153,10 @@ class _IncidentFormScreenState extends ConsumerState<IncidentFormScreen> {
                       puName: pu?.name,
                     ));
                     if (!mounted) return;
-                    // ignore: use_build_context_synchronously
-                    if (true) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Incident submitted')));
-                      context.pop();
-                    }
+                    ScaffoldMessenger.of(context)
+                        .showSnackBar(const SnackBar(content: Text('Incident submitted')));
+                    context.pop();
                   },
-            style: FilledButton.styleFrom(backgroundColor: ApcColors.red),
-            child: const Text('Submit incident'),
           ),
         ],
       ),
