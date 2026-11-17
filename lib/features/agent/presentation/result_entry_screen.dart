@@ -5,6 +5,7 @@ import 'package:uuid/uuid.dart';
 import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/utils/validators.dart';
+import '../../../core/widgets/evidence_photo.dart';
 import '../../../core/widgets/ui_kit.dart';
 import '../../../data/models/models.dart';
 import '../../../data/providers/providers.dart';
@@ -23,6 +24,7 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
   bool busy = false;
   String? errorText;
   List<String> warnings = [];
+  String? evidencePhotoPath;
 
   @override
   void dispose() {
@@ -45,6 +47,8 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
     }
     final pu = repo.findPu(widget.puId);
     final total = parties.fold<int>(0, (a, p) => a + _parse(voteCtrls[p.id]!));
+    final hasEvidence =
+        evidencePhotoPath != null && evidencePhotoPath!.trim().isNotEmpty;
 
     return Scaffold(
       backgroundColor: ApcColors.surface,
@@ -53,7 +57,10 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
         children: [
           SoftCard(
-            child: Text(pu?.name ?? '', style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+            child: Text(
+              pu?.name ?? '',
+              style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            ),
           ),
           const SizedBox(height: 12),
           FormSectionCard(
@@ -64,14 +71,18 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
                 TextField(
                   controller: accredited,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Accredited voters'),
+                  decoration: const InputDecoration(
+                    labelText: 'Accredited voters',
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: invalid,
                   keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Invalid ballots'),
+                  decoration: const InputDecoration(
+                    labelText: 'Invalid ballots',
+                  ),
                   onChanged: (_) => setState(() {}),
                 ),
               ],
@@ -90,7 +101,11 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
                         labelText: '${p.acronym} — ${p.name}',
-                        prefixIcon: Icon(Icons.circle, size: 12, color: _color(p.colorHex)),
+                        prefixIcon: Icon(
+                          Icons.circle,
+                          size: 12,
+                          color: _color(p.colorHex),
+                        ),
                       ),
                       onChanged: (_) => setState(() {}),
                     ),
@@ -105,29 +120,68 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
                 const Icon(Icons.calculate_rounded, color: ApcColors.green),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: Text('Auto total (party votes): $total',
-                      style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: ApcColors.greenDark)),
+                  child: Text(
+                    'Auto total (party votes): $total',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 16,
+                      color: ApcColors.greenDark,
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
+          const SizedBox(height: 4),
+          EvidenceCaptureCard(
+            photoPath: evidencePhotoPath,
+            onChanged: (path) => setState(() => evidencePhotoPath = path),
+          ),
           if (errorText != null)
             Padding(
               padding: const EdgeInsets.only(top: 10),
-              child: Text(errorText!, style: const TextStyle(color: ApcColors.red, fontWeight: FontWeight.w600)),
+              child: Text(
+                errorText!,
+                style: const TextStyle(
+                  color: ApcColors.red,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-          ...warnings.map((w) => Padding(
-                padding: const EdgeInsets.only(top: 4),
-                child: Text(w, style: const TextStyle(color: ApcColors.gold, fontSize: 12)),
-              )),
+          ...warnings.map(
+            (w) => Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                w,
+                style: const TextStyle(color: ApcColors.gold, fontSize: 12),
+              ),
+            ),
+          ),
           const SizedBox(height: 16),
           SoftCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('Goes to approval chain', style: TextStyle(fontWeight: FontWeight.w800)),
+                const Text(
+                  'Goes to approval chain',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
                 const SizedBox(height: 10),
-                const ApprovalTimeline(currentStatus: ResultStatus.pendingWard, compact: true),
+                const ApprovalTimeline(
+                  currentStatus: ResultStatus.pendingWard,
+                  compact: true,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  hasEvidence
+                      ? 'Sheet photo will travel with this result for ward → LGA → state checks.'
+                      : 'Attach the result-sheet photo before submitting.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: hasEvidence ? ApcColors.muted : ApcColors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -162,11 +216,17 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
       accredited: _parse(accredited),
       invalid: _parse(invalid),
     );
+    final missingEvidence =
+        evidencePhotoPath == null || evidencePhotoPath!.trim().isEmpty;
     setState(() {
-      errorText = v.errors.isEmpty ? null : v.errors.join('\n');
+      final errors = [...v.errors];
+      if (missingEvidence) {
+        errors.add('Photograph the official result sheet before submitting.');
+      }
+      errorText = errors.isEmpty ? null : errors.join('\n');
       warnings = v.warnings;
     });
-    if (!v.ok) return;
+    if (!v.ok || missingEvidence) return;
     setState(() => busy = true);
     final total = partyVotes.values.fold(0, (a, b) => a + b);
     final messenger = ScaffoldMessenger.of(context);
@@ -184,12 +244,20 @@ class _ResultEntryScreenState extends ConsumerState<ResultEntryScreen> {
         submittedAt: DateTime.now(),
         partyVotes: partyVotes,
         puName: repo.findPu(widget.puId)?.name,
+        evidencePhotoPath: evidencePhotoPath,
+        evidenceCapturedAt: DateTime.now(),
       ),
       offline: offline,
     );
-    messenger.showSnackBar(SnackBar(
-      content: Text(offline ? 'Draft queued offline' : 'Result submitted — pending ward'),
-    ));
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(
+          offline
+              ? 'Draft + sheet photo queued offline'
+              : 'Result + sheet photo submitted — pending ward',
+        ),
+      ),
+    );
     router.pop();
   }
 }

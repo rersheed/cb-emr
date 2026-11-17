@@ -15,12 +15,17 @@ class PuScreen extends ConsumerWidget {
     final repo = ref.watch(repositoryProvider);
     final resolved = repo.resolvePu(puId);
     if (resolved == null) {
-      return Scaffold(appBar: AppBar(title: const Text('PU')), body: const Center(child: Text('PU not found')));
+      return Scaffold(
+        appBar: AppBar(title: const Text('PU')),
+        body: const Center(child: Text('PU not found')),
+      );
     }
     final pu = resolved.pu;
     return Scaffold(
       backgroundColor: ApcColors.surface,
-      appBar: AppBar(title: Text(pu.name)),
+      appBar: AppBar(
+        title: Text(pu.name, maxLines: 1, overflow: TextOverflow.ellipsis),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -36,19 +41,35 @@ class PuScreen extends ConsumerWidget {
                         color: ApcColors.greenSoft,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.location_on_rounded, color: ApcColors.green),
+                      child: const Icon(
+                        Icons.location_on_rounded,
+                        color: ApcColors.green,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${resolved.state.name} › ${resolved.lga.name}',
-                              style: const TextStyle(fontWeight: FontWeight.w800)),
-                          Text('Ward: ${resolved.ward.name}',
-                              style: const TextStyle(color: ApcColors.muted, fontSize: 13)),
-                          Text('PU code: ${pu.code}',
-                              style: const TextStyle(color: ApcColors.blue, fontSize: 12, fontWeight: FontWeight.w600)),
+                          Text(
+                            '${resolved.state.name} › ${resolved.lga.name}',
+                            style: const TextStyle(fontWeight: FontWeight.w800),
+                          ),
+                          Text(
+                            'Ward: ${resolved.ward.name}',
+                            style: const TextStyle(
+                              color: ApcColors.muted,
+                              fontSize: 13,
+                            ),
+                          ),
+                          Text(
+                            'PU code: ${pu.code}',
+                            style: const TextStyle(
+                              color: ApcColors.blue,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -58,7 +79,10 @@ class PuScreen extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Actions', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+          const Text(
+            'Actions',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+          ),
           const SizedBox(height: 10),
           GridView.count(
             crossAxisCount: 2,
@@ -66,7 +90,7 @@ class PuScreen extends ConsumerWidget {
             physics: const NeverScrollableScrollPhysics(),
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
-            childAspectRatio: 1.15,
+            childAspectRatio: 1.05,
             children: [
               ActionGridTile(
                 icon: Icons.door_front_door_rounded,

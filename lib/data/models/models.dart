@@ -5,7 +5,12 @@ class StateGeo extends Equatable {
   final String name;
   final String code;
   final List<LgaGeo> lgas;
-  const StateGeo({required this.id, required this.name, required this.code, required this.lgas});
+  const StateGeo({
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.lgas,
+  });
   @override
   List<Object?> get props => [id];
 }
@@ -15,7 +20,12 @@ class LgaGeo extends Equatable {
   final String name;
   final String code;
   final List<WardGeo> wards;
-  const LgaGeo({required this.id, required this.name, required this.code, required this.wards});
+  const LgaGeo({
+    required this.id,
+    required this.name,
+    required this.code,
+    required this.wards,
+  });
   @override
   List<Object?> get props => [id];
 }
@@ -43,7 +53,11 @@ class PollingUnitGeo extends Equatable {
   final String id;
   final String name;
   final String code;
-  const PollingUnitGeo({required this.id, required this.name, required this.code});
+  const PollingUnitGeo({
+    required this.id,
+    required this.name,
+    required this.code,
+  });
   @override
   List<Object?> get props => [id];
 }
@@ -76,7 +90,12 @@ class Party extends Equatable {
   final String name;
   final String acronym;
   final String colorHex;
-  const Party({required this.id, required this.name, required this.acronym, required this.colorHex});
+  const Party({
+    required this.id,
+    required this.name,
+    required this.acronym,
+    required this.colorHex,
+  });
   @override
   List<Object?> get props => [id];
 }
@@ -113,6 +132,10 @@ class PollingResult extends Equatable {
   final String? lgaId;
   final String? stateId;
 
+  /// Local path or stub URI for the photographed result sheet.
+  final String? evidencePhotoPath;
+  final DateTime? evidenceCapturedAt;
+
   const PollingResult({
     required this.id,
     required this.electionId,
@@ -129,9 +152,14 @@ class PollingResult extends Equatable {
     this.wardId,
     this.lgaId,
     this.stateId,
+    this.evidencePhotoPath,
+    this.evidenceCapturedAt,
   });
 
   int get totalPartyVotes => partyVotes.values.fold(0, (a, b) => a + b);
+
+  bool get hasEvidence =>
+      evidencePhotoPath != null && evidencePhotoPath!.trim().isNotEmpty;
 
   PollingResult copyWith({
     String? status,
@@ -141,63 +169,79 @@ class PollingResult extends Equatable {
     int? validVotes,
     int? invalidVotes,
     Map<String, int>? partyVotes,
-  }) =>
-      PollingResult(
-        id: id,
-        electionId: electionId,
-        pollingUnitId: pollingUnitId,
-        submittedBy: submittedBy,
-        accreditedVoters: accreditedVoters ?? this.accreditedVoters,
-        validVotes: validVotes ?? this.validVotes,
-        invalidVotes: invalidVotes ?? this.invalidVotes,
-        status: status ?? this.status,
-        rejectionReason: rejectionReason,
-        submittedAt: submittedAt ?? this.submittedAt,
-        partyVotes: partyVotes ?? this.partyVotes,
-        puName: puName,
-        wardId: wardId,
-        lgaId: lgaId,
-        stateId: stateId,
-      );
+    String? evidencePhotoPath,
+    DateTime? evidenceCapturedAt,
+    bool clearEvidence = false,
+  }) => PollingResult(
+    id: id,
+    electionId: electionId,
+    pollingUnitId: pollingUnitId,
+    submittedBy: submittedBy,
+    accreditedVoters: accreditedVoters ?? this.accreditedVoters,
+    validVotes: validVotes ?? this.validVotes,
+    invalidVotes: invalidVotes ?? this.invalidVotes,
+    status: status ?? this.status,
+    rejectionReason: rejectionReason,
+    submittedAt: submittedAt ?? this.submittedAt,
+    partyVotes: partyVotes ?? this.partyVotes,
+    puName: puName,
+    wardId: wardId,
+    lgaId: lgaId,
+    stateId: stateId,
+    evidencePhotoPath: clearEvidence
+        ? null
+        : (evidencePhotoPath ?? this.evidencePhotoPath),
+    evidenceCapturedAt: clearEvidence
+        ? null
+        : (evidenceCapturedAt ?? this.evidenceCapturedAt),
+  );
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'electionId': electionId,
-        'pollingUnitId': pollingUnitId,
-        'submittedBy': submittedBy,
-        'accreditedVoters': accreditedVoters,
-        'validVotes': validVotes,
-        'invalidVotes': invalidVotes,
-        'status': status,
-        'rejectionReason': rejectionReason,
-        'submittedAt': submittedAt?.toIso8601String(),
-        'partyVotes': partyVotes,
-        'puName': puName,
-        'wardId': wardId,
-        'lgaId': lgaId,
-        'stateId': stateId,
-      };
+    'id': id,
+    'electionId': electionId,
+    'pollingUnitId': pollingUnitId,
+    'submittedBy': submittedBy,
+    'accreditedVoters': accreditedVoters,
+    'validVotes': validVotes,
+    'invalidVotes': invalidVotes,
+    'status': status,
+    'rejectionReason': rejectionReason,
+    'submittedAt': submittedAt?.toIso8601String(),
+    'partyVotes': partyVotes,
+    'puName': puName,
+    'wardId': wardId,
+    'lgaId': lgaId,
+    'stateId': stateId,
+    'evidencePhotoPath': evidencePhotoPath,
+    'evidenceCapturedAt': evidenceCapturedAt?.toIso8601String(),
+  };
 
   factory PollingResult.fromMap(Map<dynamic, dynamic> m) => PollingResult(
-        id: m['id'] as String,
-        electionId: m['electionId'] as String,
-        pollingUnitId: m['pollingUnitId'] as String,
-        submittedBy: m['submittedBy'] as String,
-        accreditedVoters: m['accreditedVoters'] as int,
-        validVotes: m['validVotes'] as int,
-        invalidVotes: m['invalidVotes'] as int,
-        status: m['status'] as String,
-        rejectionReason: m['rejectionReason'] as String?,
-        submittedAt: m['submittedAt'] != null ? DateTime.parse(m['submittedAt'] as String) : null,
-        partyVotes: Map<String, int>.from(m['partyVotes'] as Map),
-        puName: m['puName'] as String?,
-        wardId: m['wardId'] as String?,
-        lgaId: m['lgaId'] as String?,
-        stateId: m['stateId'] as String?,
-      );
+    id: m['id'] as String,
+    electionId: m['electionId'] as String,
+    pollingUnitId: m['pollingUnitId'] as String,
+    submittedBy: m['submittedBy'] as String,
+    accreditedVoters: m['accreditedVoters'] as int,
+    validVotes: m['validVotes'] as int,
+    invalidVotes: m['invalidVotes'] as int,
+    status: m['status'] as String,
+    rejectionReason: m['rejectionReason'] as String?,
+    submittedAt: m['submittedAt'] != null
+        ? DateTime.parse(m['submittedAt'] as String)
+        : null,
+    partyVotes: Map<String, int>.from(m['partyVotes'] as Map),
+    puName: m['puName'] as String?,
+    wardId: m['wardId'] as String?,
+    lgaId: m['lgaId'] as String?,
+    stateId: m['stateId'] as String?,
+    evidencePhotoPath: m['evidencePhotoPath'] as String?,
+    evidenceCapturedAt: m['evidenceCapturedAt'] != null
+        ? DateTime.parse(m['evidenceCapturedAt'] as String)
+        : null,
+  );
 
   @override
-  List<Object?> get props => [id, status, partyVotes];
+  List<Object?> get props => [id, status, partyVotes, evidencePhotoPath];
 }
 
 class OpeningReport extends Equatable {
@@ -230,34 +274,34 @@ class OpeningReport extends Equatable {
   });
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'electionId': electionId,
-        'pollingUnitId': pollingUnitId,
-        'reporterId': reporterId,
-        'openedAt': openedAt.toIso8601String(),
-        'materialsComplete': materialsComplete,
-        'officialsPresent': officialsPresent,
-        'notes': notes,
-        'gpsLat': gpsLat,
-        'gpsLon': gpsLon,
-        'status': status,
-        'puName': puName,
-      };
+    'id': id,
+    'electionId': electionId,
+    'pollingUnitId': pollingUnitId,
+    'reporterId': reporterId,
+    'openedAt': openedAt.toIso8601String(),
+    'materialsComplete': materialsComplete,
+    'officialsPresent': officialsPresent,
+    'notes': notes,
+    'gpsLat': gpsLat,
+    'gpsLon': gpsLon,
+    'status': status,
+    'puName': puName,
+  };
 
   factory OpeningReport.fromMap(Map<dynamic, dynamic> m) => OpeningReport(
-        id: m['id'] as String,
-        electionId: m['electionId'] as String,
-        pollingUnitId: m['pollingUnitId'] as String,
-        reporterId: m['reporterId'] as String,
-        openedAt: DateTime.parse(m['openedAt'] as String),
-        materialsComplete: m['materialsComplete'] as bool,
-        officialsPresent: m['officialsPresent'] as bool,
-        notes: m['notes'] as String?,
-        gpsLat: (m['gpsLat'] as num?)?.toDouble(),
-        gpsLon: (m['gpsLon'] as num?)?.toDouble(),
-        status: m['status'] as String,
-        puName: m['puName'] as String?,
-      );
+    id: m['id'] as String,
+    electionId: m['electionId'] as String,
+    pollingUnitId: m['pollingUnitId'] as String,
+    reporterId: m['reporterId'] as String,
+    openedAt: DateTime.parse(m['openedAt'] as String),
+    materialsComplete: m['materialsComplete'] as bool,
+    officialsPresent: m['officialsPresent'] as bool,
+    notes: m['notes'] as String?,
+    gpsLat: (m['gpsLat'] as num?)?.toDouble(),
+    gpsLon: (m['gpsLon'] as num?)?.toDouble(),
+    status: m['status'] as String,
+    puName: m['puName'] as String?,
+  );
 
   @override
   List<Object?> get props => [id];
@@ -295,36 +339,36 @@ class Incident extends Equatable {
   });
 
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'electionId': electionId,
-        'pollingUnitId': pollingUnitId,
-        'reporterId': reporterId,
-        'category': category,
-        'description': description,
-        'photoPath': photoPath,
-        'gpsLat': gpsLat,
-        'gpsLon': gpsLon,
-        'severity': severity,
-        'status': status,
-        'createdAt': createdAt.toIso8601String(),
-        'puName': puName,
-      };
+    'id': id,
+    'electionId': electionId,
+    'pollingUnitId': pollingUnitId,
+    'reporterId': reporterId,
+    'category': category,
+    'description': description,
+    'photoPath': photoPath,
+    'gpsLat': gpsLat,
+    'gpsLon': gpsLon,
+    'severity': severity,
+    'status': status,
+    'createdAt': createdAt.toIso8601String(),
+    'puName': puName,
+  };
 
   factory Incident.fromMap(Map<dynamic, dynamic> m) => Incident(
-        id: m['id'] as String,
-        electionId: m['electionId'] as String,
-        pollingUnitId: m['pollingUnitId'] as String,
-        reporterId: m['reporterId'] as String,
-        category: m['category'] as String,
-        description: m['description'] as String,
-        photoPath: m['photoPath'] as String?,
-        gpsLat: (m['gpsLat'] as num?)?.toDouble(),
-        gpsLon: (m['gpsLon'] as num?)?.toDouble(),
-        severity: m['severity'] as String,
-        status: m['status'] as String,
-        createdAt: DateTime.parse(m['createdAt'] as String),
-        puName: m['puName'] as String?,
-      );
+    id: m['id'] as String,
+    electionId: m['electionId'] as String,
+    pollingUnitId: m['pollingUnitId'] as String,
+    reporterId: m['reporterId'] as String,
+    category: m['category'] as String,
+    description: m['description'] as String,
+    photoPath: m['photoPath'] as String?,
+    gpsLat: (m['gpsLat'] as num?)?.toDouble(),
+    gpsLon: (m['gpsLon'] as num?)?.toDouble(),
+    severity: m['severity'] as String,
+    status: m['status'] as String,
+    createdAt: DateTime.parse(m['createdAt'] as String),
+    puName: m['puName'] as String?,
+  );
 
   @override
   List<Object?> get props => [id];
@@ -384,17 +428,17 @@ class SyncQueueItem extends Equatable {
     required this.enqueuedAt,
   });
   Map<String, dynamic> toMap() => {
-        'id': id,
-        'type': type,
-        'payload': payload,
-        'enqueuedAt': enqueuedAt.toIso8601String(),
-      };
+    'id': id,
+    'type': type,
+    'payload': payload,
+    'enqueuedAt': enqueuedAt.toIso8601String(),
+  };
   factory SyncQueueItem.fromMap(Map<dynamic, dynamic> m) => SyncQueueItem(
-        id: m['id'] as String,
-        type: m['type'] as String,
-        payload: Map<String, dynamic>.from(m['payload'] as Map),
-        enqueuedAt: DateTime.parse(m['enqueuedAt'] as String),
-      );
+    id: m['id'] as String,
+    type: m['type'] as String,
+    payload: Map<String, dynamic>.from(m['payload'] as Map),
+    enqueuedAt: DateTime.parse(m['enqueuedAt'] as String),
+  );
   @override
   List<Object?> get props => [id];
 }

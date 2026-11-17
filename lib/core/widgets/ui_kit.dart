@@ -21,24 +21,22 @@ class SoftCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = Container(
+    final r = BorderRadius.circular(radius);
+    return Container(
       margin: margin,
-      padding: padding,
-      decoration: BoxDecoration(
+      decoration: BoxDecoration(borderRadius: r, boxShadow: softShadow()),
+      child: Material(
         color: color ?? ApcColors.card,
-        borderRadius: BorderRadius.circular(radius),
-        boxShadow: softShadow(),
-        border: Border.all(color: ApcColors.border.withValues(alpha: 0.6)),
-      ),
-      child: child,
-    );
-    if (onTap == null) return card;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(radius),
-        child: card,
+        shape: RoundedRectangleBorder(
+          borderRadius: r,
+          side: BorderSide(color: ApcColors.border.withValues(alpha: 0.6)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: r,
+          child: Padding(padding: padding, child: child),
+        ),
       ),
     );
   }
@@ -66,7 +64,9 @@ class ConnectionStatusChip extends StatelessWidget {
             ? Colors.white.withValues(alpha: 0.18)
             : color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(AppRadii.pill),
-        border: Border.all(color: lightOnDark ? Colors.white54 : color.withValues(alpha: 0.5)),
+        border: Border.all(
+          color: lightOnDark ? Colors.white54 : color.withValues(alpha: 0.5),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -132,6 +132,8 @@ class GradientCtaButton extends StatelessWidget {
                     child: Text(
                       label,
                       textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         color: ApcColors.white,
                         fontWeight: FontWeight.w800,
@@ -149,7 +151,10 @@ class GradientCtaButton extends StatelessWidget {
                     child: busy
                         ? const Padding(
                             padding: EdgeInsets.all(8),
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
                           )
                         : Icon(icon, color: ApcColors.white, size: 20),
                   ),
@@ -195,7 +200,10 @@ class PillSearchField extends StatelessWidget {
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
           filled: false,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 8,
+            vertical: 14,
+          ),
         ),
       ),
     );
@@ -219,34 +227,39 @@ class ActionGridTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SoftCard(
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 10),
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(icon, color: color, size: 26),
+      child: Center(
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: color, size: 22),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12.5,
+                  height: 1.15,
+                  color: ApcColors.ink,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            label,
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 12.5,
-              height: 1.2,
-              color: ApcColors.ink,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -287,7 +300,9 @@ class FloatingPillNav extends StatelessWidget {
                     duration: const Duration(milliseconds: 200),
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     decoration: BoxDecoration(
-                      color: i == index ? ApcColors.greenSoft : Colors.transparent,
+                      color: i == index
+                          ? ApcColors.greenSoft
+                          : Colors.transparent,
                       borderRadius: BorderRadius.circular(AppRadii.pill),
                     ),
                     child: Column(
@@ -301,10 +316,14 @@ class FloatingPillNav extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           items[i].label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
-                            color: i == index ? ApcColors.green : ApcColors.muted,
+                            color: i == index
+                                ? ApcColors.green
+                                : ApcColors.muted,
                           ),
                         ),
                       ],
@@ -334,7 +353,11 @@ class ApprovalTimeline extends StatelessWidget {
     ('Ward', 'Ward supervisor review', Icons.account_tree_outlined),
     ('LGA', 'LGA supervisor review', Icons.location_city_outlined),
     ('State', 'State supervisor review', Icons.flag_outlined),
-    ('Situation Room', 'State verified · read-only', Icons.monitor_heart_outlined),
+    (
+      'Situation Room',
+      'State verified · read-only',
+      Icons.monitor_heart_outlined,
+    ),
   ];
 
   int get _activeIndex {
@@ -374,17 +397,17 @@ class ApprovalTimeline extends StatelessWidget {
                       color: active < 0
                           ? ApcColors.redSoft
                           : i < active
-                              ? ApcColors.green
-                              : i == active
-                                  ? ApcColors.blue
-                                  : ApcColors.surface,
+                          ? ApcColors.green
+                          : i == active
+                          ? ApcColors.blue
+                          : ApcColors.surface,
                       shape: BoxShape.circle,
                       border: Border.all(
                         color: active < 0
                             ? ApcColors.red
                             : i <= active
-                                ? Colors.transparent
-                                : ApcColors.border,
+                            ? Colors.transparent
+                            : ApcColors.border,
                         width: 2,
                       ),
                     ),
@@ -392,10 +415,12 @@ class ApprovalTimeline extends StatelessWidget {
                       active < 0 && i == 0
                           ? Icons.close
                           : i < active
-                              ? Icons.check_rounded
-                              : steps[i].$3,
+                          ? Icons.check_rounded
+                          : steps[i].$3,
                       size: 14,
-                      color: i <= active && active >= 0 ? ApcColors.white : ApcColors.muted,
+                      color: i <= active && active >= 0
+                          ? ApcColors.white
+                          : ApcColors.muted,
                     ),
                   ),
                   if (i < steps.length - 1)
@@ -409,7 +434,10 @@ class ApprovalTimeline extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: Padding(
-                  padding: EdgeInsets.only(bottom: i < steps.length - 1 ? (compact ? 8 : 14) : 0, top: 4),
+                  padding: EdgeInsets.only(
+                    bottom: i < steps.length - 1 ? (compact ? 8 : 14) : 0,
+                    top: 4,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -417,13 +445,18 @@ class ApprovalTimeline extends StatelessWidget {
                         steps[i].$1,
                         style: TextStyle(
                           fontWeight: FontWeight.w800,
-                          color: i <= active && active >= 0 ? ApcColors.ink : ApcColors.muted,
+                          color: i <= active && active >= 0
+                              ? ApcColors.ink
+                              : ApcColors.muted,
                         ),
                       ),
                       if (!compact)
                         Text(
                           steps[i].$2,
-                          style: const TextStyle(fontSize: 12, color: ApcColors.muted),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: ApcColors.muted,
+                          ),
                         ),
                     ],
                   ),
@@ -473,7 +506,13 @@ class FormSectionCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
               ],
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 15)),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 15,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 14),
@@ -492,7 +531,11 @@ class StatusTrustRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final items = [
-      (Icons.cloud_sync_rounded, syncPending > 0 ? 'Sync ($syncPending)' : 'Offline sync', ApcColors.blue),
+      (
+        Icons.cloud_sync_rounded,
+        syncPending > 0 ? 'Sync ($syncPending)' : 'Offline sync',
+        ApcColors.blue,
+      ),
       (Icons.gps_fixed_rounded, 'GPS ready', ApcColors.green),
       (Icons.lock_rounded, 'Encrypted', ApcColors.brown),
     ];
@@ -515,7 +558,13 @@ class StatusTrustRow extends StatelessWidget {
                 Text(
                   item.$2,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: ApcColors.muted),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: ApcColors.muted,
+                  ),
                 ),
               ],
             ),

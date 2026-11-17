@@ -20,35 +20,64 @@ class SyncQueueScreen extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.all(16),
             child: SoftCard(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text('${queue.length} pending upload(s)',
-                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
-                  ),
-                  FilledButton.icon(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final button = FilledButton.icon(
                     onPressed: queue.isEmpty
                         ? null
                         : () async {
                             final n = await repo.syncPending();
                             if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Synced $n item(s) into demo store')),
+                                SnackBar(
+                                  content: Text(
+                                    'Synced $n item(s) into demo store',
+                                  ),
+                                ),
                               );
                             }
                           },
                     icon: const Icon(Icons.cloud_done_rounded),
-                    label: const Text('Sync now'),
-                  ),
-                ],
+                    label: const Text(
+                      'Sync now',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                  final title = Text(
+                    '${queue.length} pending upload(s)',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 16,
+                    ),
+                  );
+                  if (constraints.maxWidth < 340) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [title, const SizedBox(height: 10), button],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      Expanded(child: title),
+                      const SizedBox(width: 8),
+                      button,
+                    ],
+                  );
+                },
               ),
             ),
           ),
           Expanded(
             child: queue.isEmpty
                 ? const Center(
-                    child: Text('Queue empty — drafts sync here when offline.',
-                        style: TextStyle(color: ApcColors.muted)))
+                    child: Text(
+                      'Queue empty — drafts sync here when offline.',
+                      style: TextStyle(color: ApcColors.muted),
+                    ),
+                  )
                 : ListView.builder(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                     itemCount: queue.length,
@@ -62,11 +91,14 @@ class SyncQueueScreen extends ConsumerWidget {
                             item.type == 'result'
                                 ? Icons.how_to_vote
                                 : item.type == 'incident'
-                                    ? Icons.warning
-                                    : Icons.door_front_door,
+                                ? Icons.warning
+                                : Icons.door_front_door,
                             color: ApcColors.blue,
                           ),
-                          title: Text(item.type, style: const TextStyle(fontWeight: FontWeight.w700)),
+                          title: Text(
+                            item.type,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
                           subtitle: Text(item.id),
                         ),
                       );

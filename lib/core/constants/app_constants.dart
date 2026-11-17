@@ -1,7 +1,7 @@
 class AppConstants {
   static const appTitle = 'CB-EMR';
   static const appSubtitle = 'City Boy Election Monitoring';
-  static const geographyAsset = 'assets/data/nw_geography.json';
+  static const geographyAsset = 'assets/data/kaduna_geography.json';
   static const apcLogo = 'assets/images/apc-logo.png';
   static const cityBoyLogo = 'assets/images/city-boy-logo.png';
   static const hiveDraftsBox = 'cb_emr_drafts';
@@ -35,13 +35,7 @@ class ResultStatus {
   static const stateVerified = 'state_verified';
   static const rejected = 'rejected';
 
-  static const chain = [
-    draft,
-    pendingWard,
-    pendingLga,
-    pendingState,
-    stateVerified,
-  ];
+  static const chain = [draft, pendingWard, pendingLga, pendingState, stateVerified];
 
   static String label(String s) => switch (s) {
         draft => 'Draft',
@@ -65,7 +59,7 @@ class ResultStatus {
         AppRoles.wardSupervisor => pendingWard,
         AppRoles.lgaSupervisor => pendingLga,
         AppRoles.stateSupervisor => pendingState,
-        AppRoles.superAdmin => pendingWard, // sees ward queue by default
+        AppRoles.superAdmin => pendingWard,
         _ => null,
       };
 }

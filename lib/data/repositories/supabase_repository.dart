@@ -139,6 +139,8 @@ class SupabaseRepository extends ChangeNotifier implements EmrRepository {
         'status': r.status,
         'rejection_reason': r.rejectionReason,
         'submitted_at': r.submittedAt?.toIso8601String(),
+        'evidence_photo_path': r.evidencePhotoPath,
+        'evidence_captured_at': r.evidenceCapturedAt?.toIso8601String(),
       }, onConflict: 'election_id,polling_unit_id');
       final details = r.partyVotes.entries
           .map((e) => {

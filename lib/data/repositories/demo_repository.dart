@@ -183,6 +183,8 @@ class DemoRepository extends ChangeNotifier implements EmrRepository {
         wardId: ward.id,
         lgaId: lga.id,
         stateId: state.id,
+        evidencePhotoPath: 'stub://seed-result-sheet-$puId.jpg',
+        evidenceCapturedAt: DateTime.now().subtract(const Duration(hours: 2, minutes: 5)),
       ));
     }
 
@@ -310,6 +312,8 @@ class DemoRepository extends ChangeNotifier implements EmrRepository {
       wardId: resolved?.ward.id ?? r.wardId,
       lgaId: resolved?.lga.id ?? r.lgaId,
       stateId: resolved?.state.id ?? r.stateId,
+      evidencePhotoPath: result.evidencePhotoPath ?? r.evidencePhotoPath,
+      evidenceCapturedAt: result.evidenceCapturedAt ?? r.evidenceCapturedAt,
     );
 
     if (offline) {
